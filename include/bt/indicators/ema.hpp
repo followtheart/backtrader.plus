@@ -172,6 +172,8 @@ private:
 /**
  * @brief 三指数移动平均 (TEMA)
  * TEMA = 3 * EMA - 3 * EMA(EMA) + EMA(EMA(EMA))
+ * 
+ * TEMA 通过组合三阶 EMA 来减少滞后性，同时保持平滑效果
  */
 class TEMA : public Indicator {
 public:
@@ -183,14 +185,80 @@ public:
         params_.override(params);
         addLine("tema");
         int period = p().get<int>("period");
+        // TEMA 需要 3 * period - 2 的预热期
         setMinperiod(3 * period - 2);
     }
     
-    void next() override {
-        // 简化实现，实际需要三阶 EMA
-        // TODO: 完整实现
-        lines0().push(dataValue(0));
+    TEMA(LineBuffer* input, int period) {
+        params_.set("period", period);
+        bindData(input);
+        addLine("tema");
+        setMinperiod(3 * period - 2);
     }
+    
+    TEMA(LineSeries* data, int period) {
+        params_.set("period", period);
+        bindData(data);
+        addLine("tema");
+        setMinperiod(3 * period - 2);
+    }
+    
+    void init() override {
+        int period = p().get<int>("period");
+        alpha_ = 2.0 / (period + 1);
+        ema1Initialized_ = false;
+        ema2Initialized_ = false;
+        ema3Initialized_ = false;
+    }
+    
+    void next() override {
+        int period = p().get<int>("period");
+        Value current = dataValue(0);
+        
+        // 计算 EMA1 (原始数据的 EMA)
+        if (!ema1Initialized_) {
+            // 第一个值用 SMA 初始化
+            Value sum = 0.0;
+            for (int i = 0; i < period; ++i) {
+                sum += dataValue(i);
+            }
+            ema1_ = sum / period;
+            ema1Initialized_ = true;
+        } else {
+            ema1_ = alpha_ * current + (1.0 - alpha_) * ema1_;
+        }
+        
+        // 计算 EMA2 (EMA1 的 EMA)
+        if (!ema2Initialized_) {
+            ema2_ = ema1_;
+            ema2Initialized_ = true;
+        } else {
+            ema2_ = alpha_ * ema1_ + (1.0 - alpha_) * ema2_;
+        }
+        
+        // 计算 EMA3 (EMA2 的 EMA)
+        if (!ema3Initialized_) {
+            ema3_ = ema2_;
+            ema3Initialized_ = true;
+        } else {
+            ema3_ = alpha_ * ema2_ + (1.0 - alpha_) * ema3_;
+        }
+        
+        // TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
+        Value tema = 3.0 * ema1_ - 3.0 * ema2_ + ema3_;
+        lines0().push(tema);
+    }
+    
+    Value value(Index idx = 0) const { return lines0()[idx]; }
+
+private:
+    Value alpha_ = 0.0;
+    Value ema1_ = 0.0;
+    Value ema2_ = 0.0;
+    Value ema3_ = 0.0;
+    bool ema1Initialized_ = false;
+    bool ema2Initialized_ = false;
+    bool ema3Initialized_ = false;
 };
 
 } // namespace indicators
