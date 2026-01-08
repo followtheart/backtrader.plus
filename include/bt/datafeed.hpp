@@ -48,14 +48,21 @@ struct DateTime {
     }
     
     // Parse from string "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS"
-    static DateTime parse(const std::string& str) {
+    // dtformat: 0 = auto, 1 = date only (YYYY-MM-DD), 2 = date + time (YYYY-MM-DD HH:MM:SS)
+    static DateTime parse(const std::string& str, int dtformat = 0) {
         DateTime dt;
         if (str.length() >= 10) {
             dt.year = std::stoi(str.substr(0, 4));
             dt.month = std::stoi(str.substr(5, 2));
             dt.day = std::stoi(str.substr(8, 2));
         }
-        if (str.length() >= 19) {
+        // Parse time component based on dtformat
+        // dtformat=0: auto (parse if string is long enough)
+        // dtformat=1: date only (skip time parsing)
+        // dtformat=2: force parse time
+        bool parseTime = (dtformat != 1) && (str.length() >= 19);
+        
+        if (parseTime) {
             dt.hour = std::stoi(str.substr(11, 2));
             dt.minute = std::stoi(str.substr(14, 2));
             dt.second = std::stoi(str.substr(17, 2));
@@ -222,8 +229,9 @@ public:
                 int cCol = p().get<int>("close");
                 int vCol = p().get<int>("volume");
                 int oiCol = p().get<int>("openinterest");
+                int dtFormat = p().get<int>("dtformat");
                 
-                DateTime dt = DateTime::parse(cols[dtCol]);
+                DateTime dt = DateTime::parse(cols[dtCol], dtFormat);
                 Value o = std::stod(cols[oCol]);
                 Value h = std::stod(cols[hCol]);
                 Value l = std::stod(cols[lCol]);
