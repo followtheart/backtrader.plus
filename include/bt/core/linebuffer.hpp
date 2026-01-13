@@ -1,12 +1,12 @@
 /**
  * @file linebuffer.hpp
- * @brief 核心时间序列缓冲�?- 对应 Python �?linebuffer.py
+ * @brief 核心时间序列缓冲�?- 对应 Python �?linebuffer.py
  * 
- * LineBuffer 是整个框架的基础数据结构�?
- * - 支持索引 [0] 表示"当前"�?
- * - 支持 [1], [2]... 表示过去的�?
+ * LineBuffer 是整个框架的基础数据结构�?
+ * - 支持索引 [0] 表示"当前"�?
+ * - 支持 [1], [2]... 表示过去的�?
  * - 支持 [-1], [-2]... 表示未来的值（仅在指标计算中）
- * - 支持两种内存模式：Unbounded（无界）�?QBuffer（固定大小）
+ * - 支持两种内存模式：Unbounded（无界）�?QBuffer（固定大小）
  */
 
 #pragma once
@@ -21,7 +21,7 @@
 namespace bt {
 
 /**
- * @brief 缓冲区存储策略接�?
+ * @brief 缓冲区存储策略接�?
  */
 class IBufferStorage {
 public:
@@ -35,8 +35,8 @@ public:
     virtual void reserve(Size n) = 0;
     
     // 支持前向/后向操作
-    virtual void advance() = 0;      // 移动到下一�?bar
-    virtual void rewind() = 0;       // 回退一�?bar
+    virtual void advance() = 0;      // 移动到下一�?bar
+    virtual void rewind() = 0;       // 回退一�?bar
     virtual void home() = 0;         // 回到起点
     
     virtual Index position() const = 0;  // 当前位置
@@ -44,7 +44,7 @@ public:
 };
 
 /**
- * @brief 无界存储 - 保存所有历史数�?
+ * @brief 无界存储 - 保存所有历史数�?
  */
 class UnboundedStorage : public IBufferStorage {
 public:
@@ -52,10 +52,11 @@ public:
     
     void push_back(Value v) override {
         data_.push_back(v);
+        pos_ = static_cast<Index>(data_.size()) - 1;
     }
     
     Value& at(Index idx) override {
-        // idx=0 是当�? idx=1 是过�? idx=-1 是未�?
+        // idx=0 是当�? idx=1 是过�? idx=-1 是未�?
         Index actual = pos_ - idx;
         if (actual < 0 || actual >= static_cast<Index>(data_.size())) {
             throw std::out_of_range("LineBuffer index out of range");
@@ -92,7 +93,7 @@ public:
     Index position() const override { return pos_; }
     Size length() const override { return data_.size(); }
     
-    // 获取原始数据（用于向量化计算�?
+    // 获取原始数据（用于向量化计算�?
     const std::vector<Value>& data() const { return data_; }
     std::vector<Value>& data() { return data_; }
 
@@ -102,7 +103,7 @@ private:
 };
 
 /**
- * @brief 固定大小缓冲�?- 仅保存最�?N 个值（节省内存�?
+ * @brief 固定大小缓冲�?- 仅保存最�?N 个值（节省内存�?
  */
 class QBufferStorage : public IBufferStorage {
 public:
@@ -135,7 +136,7 @@ public:
     
     Size size() const override { return data_.size(); }
     void clear() override { data_.clear(); pos_ = 0; total_pushed_ = 0; }
-    void reserve(Size) override { /* deque 不支�?reserve */ }
+    void reserve(Size) override { /* deque 不支�?reserve */ }
     
     void advance() override { ++pos_; }
     void rewind() override { if (pos_ > 0) --pos_; }
@@ -152,14 +153,14 @@ private:
 };
 
 /**
- * @brief LineBuffer - 核心时间序列缓冲�?
+ * @brief LineBuffer - 核心时间序列缓冲�?
  * 
- * 对应 Python 版本�?backtrader.linebuffer.LineBuffer
+ * 对应 Python 版本�?backtrader.linebuffer.LineBuffer
  */
 class LineBuffer {
 public:
     /**
-     * @brief 创建无界缓冲�?
+     * @brief 创建无界缓冲�?
      */
     LineBuffer() 
         : storage_(std::make_unique<UnboundedStorage>())
@@ -167,8 +168,8 @@ public:
     {}
     
     /**
-     * @brief 创建固定大小缓冲�?
-     * @param qbuffer 缓冲区大�?
+     * @brief 创建固定大小缓冲�?
+     * @param qbuffer 缓冲区大�?
      */
     explicit LineBuffer(Size qbuffer)
         : storage_(std::make_unique<QBufferStorage>(qbuffer))
@@ -177,12 +178,12 @@ public:
     
     BT_DEFAULT_MOVE(LineBuffer)
     
-    // 禁用拷贝（使�?clone() 方法�?
+    // 禁用拷贝（使�?clone() 方法�?
     LineBuffer(const LineBuffer&) = delete;
     LineBuffer& operator=(const LineBuffer&) = delete;
     
     /**
-     * @brief 索引操作�?- [0] 是当前值，[1] 是过去，[-1] 是未�?
+     * @brief 索引操作�?- [0] 是当前值，[1] 是过去，[-1] 是未�?
      */
     Value& operator[](Index idx) {
         return storage_->at(idx);
@@ -193,14 +194,14 @@ public:
     }
     
     /**
-     * @brief 添加新�?
+     * @brief 添加新�?
      */
     void push(Value v) {
         storage_->push_back(v);
     }
     
     /**
-     * @brief 批量添加�?
+     * @brief 批量添加�?
      */
     void extend(const std::vector<Value>& values) {
         for (Value v : values) {
@@ -209,12 +210,12 @@ public:
     }
     
     /**
-     * @brief 移动到下一�?bar
+     * @brief 移动到下一�?bar
      */
     void advance() { storage_->advance(); }
     
     /**
-     * @brief 回退到上一�?bar
+     * @brief 回退到上一�?bar
      */
     void rewind() { storage_->rewind(); }
     
@@ -229,17 +230,17 @@ public:
     Index position() const { return storage_->position(); }
     
     /**
-     * @brief 获取缓冲区长�?
+     * @brief 获取缓冲区长�?
      */
     Size size() const { return storage_->size(); }
     
     /**
-     * @brief 获取总数据长�?
+     * @brief 获取总数据长�?
      */
     Size length() const { return storage_->length(); }
     
     /**
-     * @brief 获取/设置最小周�?
+     * @brief 获取/设置最小周�?
      */
     Size minperiod() const { return minperiod_; }
     void setMinperiod(Size mp) { minperiod_ = mp; }
@@ -252,14 +253,14 @@ public:
     }
     
     /**
-     * @brief 清空缓冲�?
+     * @brief 清空缓冲�?
      */
     void reset() {
         storage_->clear();
     }
     
     /**
-     * @brief 预分配空�?
+     * @brief 预分配空�?
      */
     void reserve(Size n) {
         storage_->reserve(n);
@@ -271,7 +272,7 @@ public:
     Value current() const { return (*this)[0]; }
     
     /**
-     * @brief 检查是否有足够的数�?
+     * @brief 检查是否有足够的数�?
      */
     bool ready() const {
         return storage_->length() >= minperiod_;
@@ -296,7 +297,7 @@ private:
 };
 
 /**
- * @brief 检查索引是否有�?
+ * @brief 检查索引是否有�?
  */
 inline bool isValidIndex(const LineBuffer& buf, Index idx) {
     try {

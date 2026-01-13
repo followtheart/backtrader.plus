@@ -37,11 +37,48 @@ Duration benchmarkIndicator(const std::string& name, bt::LineBuffer& data,
     Duration total(0);
     
     for (int i = 0; i < iterations; ++i) {
+        // 1. 重置输入数据 Cursor !!! 重要 !!!
+        // 否则后续计算都会基于最后一个数据点重复计算，导致缓存虚假命中
+        data.home();
+
         auto start = Clock::now();
         
         Indicator ind(&data, std::forward<Args>(args)...);
         ind.init();
-        ind.precompute();
+        
+        // 2. 手动驱动回测循环 (模拟 Cerebro)
+        // Indicator::precompute() 默认实现不驱动 input data，仅适用于向量化模式
+        // 这里我们模拟 Event-driven 模式以获得更真实的性能数据
+        
+        bt::Size len = data.length();
+        // 如果数据长度小于最小周期，指标无法计算
+        bt::Size min_p = ind.minperiod();
+        
+        // 我们通常从 0 开始驱动，或者从 min_period 开始
+        // 这里简单地遍历整个数据
+        for (bt::Size j = 0; j < len; ++j) {
+            // 输入数据必须与指标同步步进
+            // 注意：LineBuffer::home() 将 pos 置为 0
+            // 在循环末尾我们 advance()
+            
+            // 只有当数据足够时才计算 (Backtrader 逻辑)
+            // 但为了 benchmark 纯计算压力，我们全程调用 next
+            if (j >= min_p - 1) {
+                ind.next();
+            }
+            
+            // 驱动指标输出游标 (如果是手动调用 next，通常 ind 内部 push 会自动处理，
+            // 但 Indicator::advance 是为了那些没有使用 push 而是直接写内存的场景
+            // 标准指标使用 push，不需要手动 advance 输出? 
+            // 不，Indicator 继承 LineSeries，需要管理多条线。
+            // 大多数 Indicator 实现如 SMA, Bollinger 使用 lines0().push()
+            // push() 会自动增加内部 storage 的 pos。
+            // 但是 Indicator 作为一个 wrapper，我们需要确保它所有状态一致。
+            // 实际上，只要 next() 内部做了 push，我们就不用管。
+            
+            // 驱动输入数据
+            data.advance();
+        }
         
         auto end = Clock::now();
         total += std::chrono::duration_cast<Duration>(end - start);
@@ -99,10 +136,24 @@ int main() {
     largeData.extend(prices);
     
     {
+        // 确保数据指针重置
+        largeData.home();
+        
         auto start = Clock::now();
         bt::SMA sma(&largeData, 200);
         sma.init();
-        sma.precompute();
+        
+        // 手动驱动
+        bt::Size len = largeData.length();
+        bt::Size min_p = sma.minperiod();
+        
+        for (bt::Size j = 0; j < len; ++j) {
+            if (j >= min_p - 1) {
+                sma.next();
+            }
+            largeData.advance(); // 步进数据
+        }
+        
         auto end = Clock::now();
         auto duration = std::chrono::duration_cast<Duration>(end - start);
         

@@ -1,11 +1,11 @@
 /**
  * @file indicator.hpp
- * @brief 指标基类 - 对应 Python �?indicator.py
+ * @brief 指标基类 - 对应 Python �?indicator.py
  * 
  * 所有技术指标的基类，支持：
- * - 声明输出�?
+ * - 声明输出�?
  * - 参数系统
- * - 计算模式（once/next�?
+ * - 计算模式（once/next�?
  * - 运算符重载生成新指标
  */
 
@@ -29,7 +29,7 @@ public:
     virtual ~Indicator() = default;
     
     /**
-     * @brief 绑定数据�?
+     * @brief 绑定数据�?
      */
     void bindData(LineSeries* data) {
         data_ = data;
@@ -40,31 +40,31 @@ public:
     }
     
     /**
-     * @brief 获取绑定的数�?
+     * @brief 获取绑定的数�?
      */
     LineSeries* data() { return data_; }
     const LineSeries* data() const { return data_; }
     
     /**
-     * @brief 获取绑定的单线数�?
+     * @brief 获取绑定的单线数�?
      */
     LineBuffer* singleLineData() { return singleLine_; }
     const LineBuffer* singleLineData() const { return singleLine_; }
     
     /**
-     * @brief 初始化（设置指标，创建子指标�?
+     * @brief 初始化（设置指标，创建子指标�?
      * 子类应重写此方法
      */
     virtual void init() {}
     
     /**
-     * @brief �?bar 计算（事件驱动模式）
+     * @brief �?bar 计算（事件驱动模式）
      * 子类应重写此方法
      */
     virtual void next() {}
     
     /**
-     * @brief 向量化计算（runonce 模式�?
+     * @brief 向量化计算（runonce 模式�?
      * 默认实现循环调用 next()
      */
     virtual void once(Size start, Size end) {
@@ -75,7 +75,7 @@ public:
     }
     
     /**
-     * @brief 预计算所有值（preload 模式�?
+     * @brief 预计算所有值（preload 模式�?
      */
     void precompute() {
         if (!data_ && !singleLine_) return;
@@ -90,7 +90,7 @@ public:
     }
     
     /**
-     * @brief 获取输入数据的当前�?
+     * @brief 获取输入数据的当前�?
      */
     Value dataValue(Index idx = 0) const {
         if (singleLine_) {
@@ -128,7 +128,7 @@ enum class OpType {
 };
 
 /**
- * @brief 线操�?- 两条线的运算
+ * @brief 线操�?- 两条线的运算
  */
 class LineOp : public Indicator {
 public:
