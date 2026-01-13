@@ -64,13 +64,68 @@ public:
     virtual void next() {}
     
     /**
-     * @brief 向量化计算（runonce 模式�?
-     * 默认实现循环调用 next()
+     * @brief 向量化计算（runonce 模式）
+     * 默认实现循环调用 next()，会自动管理输入数据的游标
      */
     virtual void once(Size start, Size end) {
+        // 获取主输入线
+        LineBuffer* input = singleLine_;
+        if (!input && data_ && data_->numLines() > 0) {
+            input = &data_->line(0);
+        }
+        
+        // 如果无法获取输入，仅尝试盲算（可能由内部状态驱动）
+        if (!input) {
+            for (Size i = start; i < end; ++i) {
+                next();
+                advance();
+            }
+            return;
+        }
+
+        // 保存原始位置
+        Index originalPos = input->position();
+        
+        // 将输入游标对齐到 start
+        // 注意：LineBuffer 目前没有 seek，只能通过 home + advance
+        input->home();
+        for (Size k = 0; k < start; ++k) {
+            input->advance();
+        }
+        
+        // 循环计算
+        Size mp = minperiod();
         for (Size i = start; i < end; ++i) {
-            next();
+            // 输入游标已对齐
+            
+            // 只有当数据满足最小周期时才调用 next()
+            if (i >= mp - 1) {
+                next();
+            } else {
+                // 数据不足，填充 NaN 到所有输出线
+                // 注意：如果子类有特殊的 line 管理，这里可能需要调整
+                // 但对于标准指标，lines_ 包含了所有的输出缓冲区
+                for (auto& line : lines_) {
+                    line->push(NaN);
+                }
+            }
+            
+            // 步进输出
             advance();
+            
+            // 步进输入（为下一次迭代准备）
+            if (i < end - 1) {
+                input->advance();
+            }
+        }
+        
+        // 恢复原始位置
+        input->home();
+        // 如果原始位置是负数（虽然在这个上下文中不太可能，但为了通过 Index 类型检查）
+        if (originalPos >= 0) {
+            for (Index k = 0; k < originalPos; ++k) {
+                input->advance();
+            }
         }
     }
     

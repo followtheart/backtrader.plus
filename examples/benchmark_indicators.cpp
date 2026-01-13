@@ -37,8 +37,7 @@ Duration benchmarkIndicator(const std::string& name, bt::LineBuffer& data,
     Duration total(0);
     
     for (int i = 0; i < iterations; ++i) {
-        // 1. 重置输入数据 Cursor !!! 重要 !!!
-        // 否则后续计算都会基于最后一个数据点重复计算，导致缓存虚假命中
+        // 1. 重置输入数据 Cursor
         data.home();
 
         auto start = Clock::now();
@@ -46,39 +45,48 @@ Duration benchmarkIndicator(const std::string& name, bt::LineBuffer& data,
         Indicator ind(&data, std::forward<Args>(args)...);
         ind.init();
         
-        // 2. 手动驱动回测循环 (模拟 Cerebro)
-        // Indicator::precompute() 默认实现不驱动 input data，仅适用于向量化模式
-        // 这里我们模拟 Event-driven 模式以获得更真实的性能数据
-        
+        // 2. 手动驱动回测循环 (模拟 Cerebro Event-driven 模式)
         bt::Size len = data.length();
-        // 如果数据长度小于最小周期，指标无法计算
         bt::Size min_p = ind.minperiod();
         
-        // 我们通常从 0 开始驱动，或者从 min_period 开始
-        // 这里简单地遍历整个数据
         for (bt::Size j = 0; j < len; ++j) {
-            // 输入数据必须与指标同步步进
-            // 注意：LineBuffer::home() 将 pos 置为 0
-            // 在循环末尾我们 advance()
-            
-            // 只有当数据足够时才计算 (Backtrader 逻辑)
-            // 但为了 benchmark 纯计算压力，我们全程调用 next
+            // 只有当数据足够时才计算
             if (j >= min_p - 1) {
                 ind.next();
             }
-            
-            // 驱动指标输出游标 (如果是手动调用 next，通常 ind 内部 push 会自动处理，
-            // 但 Indicator::advance 是为了那些没有使用 push 而是直接写内存的场景
-            // 标准指标使用 push，不需要手动 advance 输出? 
-            // 不，Indicator 继承 LineSeries，需要管理多条线。
-            // 大多数 Indicator 实现如 SMA, Bollinger 使用 lines0().push()
-            // push() 会自动增加内部 storage 的 pos。
-            // 但是 Indicator 作为一个 wrapper，我们需要确保它所有状态一致。
-            // 实际上，只要 next() 内部做了 push，我们就不用管。
-            
             // 驱动输入数据
             data.advance();
         }
+        
+        auto end = Clock::now();
+        total += std::chrono::duration_cast<Duration>(end - start);
+    }
+    
+    return total / iterations;
+}
+
+template<typename Indicator, typename... Args>
+Duration benchmarkIndicatorVectorized(const std::string& name, bt::LineBuffer& data, 
+                           int iterations, Args&&... args) {
+    Duration total(0);
+    
+    for (int i = 0; i < iterations; ++i) {
+        // 向量化计算通常不需要外部手动驱动每一个 tick
+        // 但为了公平对比，我们同样需要确保输入数据处于可访问状态
+        // 不过 once/runonce 模式通常会直接操作底层数组或批量处理
+        
+        // Reset 虽非必须（如果实现是 pure function），但为了保险
+        data.home();
+        
+        auto start = Clock::now();
+        
+        Indicator ind(&data, std::forward<Args>(args)...);
+        ind.init();
+        
+        // 核心差异：一次性调用 precompute/once
+        // 这将触发 SIMD 优化路径（如果已实现）
+        // precompute 内部会自动寻找数据长度并调用 once(0, len)
+        ind.precompute();
         
         auto end = Clock::now();
         total += std::chrono::duration_cast<Duration>(end - start);
@@ -96,32 +104,46 @@ int main() {
     int iterations = 10;
     
     std::cout << std::fixed << std::setprecision(3);
-    std::cout << "Data Size\tSMA(20)\t\tEMA(20)\t\tRSI(14)\t\tBollinger(20)" << std::endl;
-    std::cout << "---------\t-------\t\t-------\t\t-------\t\t-------------" << std::endl;
+    std::cout << "Data Size\tMode\t\tSMA(20)\t\tEMA(20)\t\tRSI(14)\t\tBollinger(20)" << std::endl;
+    std::cout << "---------\t----\t\t-------\t\t-------\t\t-------\t\t-------------" << std::endl;
     
     for (size_t size : dataSizes) {
-        std::cout << size << "\t\t";
-        
         // 生成数据
         auto prices = generateRandomPrices(size);
         bt::LineBuffer data;
         data.extend(prices);
         
-        // SMA 基准
-        auto smaDuration = benchmarkIndicator<bt::SMA>("SMA", data, iterations, 20);
-        std::cout << smaDuration.count() << " ms\t\t";
+        // --- 1. Event Driven (Scalar/Next) ---
+        std::cout << size << "\t\tNext\t\t";
         
-        // EMA 基准
-        auto emaDuration = benchmarkIndicator<bt::EMA>("EMA", data, iterations, 20);
-        std::cout << emaDuration.count() << " ms\t\t";
+        auto smaNext = benchmarkIndicator<bt::SMA>("SMA", data, iterations, 20);
+        std::cout << smaNext.count() << " ms\t\t";
         
-        // RSI 基准
-        auto rsiDuration = benchmarkIndicator<bt::RSI>("RSI", data, iterations, 14);
-        std::cout << rsiDuration.count() << " ms\t\t";
+        auto emaNext = benchmarkIndicator<bt::EMA>("EMA", data, iterations, 20);
+        std::cout << emaNext.count() << " ms\t\t";
         
-        // Bollinger 基准
-        auto bbDuration = benchmarkIndicator<bt::BollingerBands>("BB", data, iterations, 20, 2.0);
-        std::cout << bbDuration.count() << " ms";
+        auto rsiNext = benchmarkIndicator<bt::RSI>("RSI", data, iterations, 14);
+        std::cout << rsiNext.count() << " ms\t\t";
+        
+        auto bbNext = benchmarkIndicator<bt::BollingerBands>("BB", data, iterations, 20, 2.0);
+        std::cout << bbNext.count() << " ms" << std::endl;
+
+        // --- 2. Vectorized (SIMD/Once) ---
+        // 只有当规模较大时，向量化的优势才明显，且小于一定规模时也没必要分开展示，
+        // 但为了对比清晰，我们全部展示
+        std::cout << size << "\t\tVector\t\t";
+        
+        auto smaVec = benchmarkIndicatorVectorized<bt::SMA>("SMA", data, iterations, 20);
+        std::cout << smaVec.count() << " ms\t\t";
+        
+        auto emaVec = benchmarkIndicatorVectorized<bt::EMA>("EMA", data, iterations, 20);
+        std::cout << emaVec.count() << " ms\t\t";
+        
+        auto rsiVec = benchmarkIndicatorVectorized<bt::RSI>("RSI", data, iterations, 14);
+        std::cout << rsiVec.count() << " ms\t\t";
+        
+        auto bbVec = benchmarkIndicatorVectorized<bt::BollingerBands>("BB", data, iterations, 20, 2.0);
+        std::cout << bbVec.count() << " ms" << std::endl;
         
         std::cout << std::endl;
     }
