@@ -1,21 +1,21 @@
 /**
  * @file indicators/sma.hpp
- * @brief 简单移动平均 (Simple Moving Average)
+ * @brief 简单移动平�?(Simple Moving Average)
  * 
  * 支持 SIMD 优化的向量化计算
  */
 
 #pragma once
 
-#include "bt/indicator.hpp"
-#include "bt/simd.hpp"
+#include "bt/indicators/indicator.hpp"
+#include "bt/core/simd.hpp"
 #include <numeric>
 
 namespace bt {
 namespace indicators {
 
 /**
- * @brief 简单移动平均 (SMA)
+ * @brief 简单移动平�?(SMA)
  * 
  * 计算公式: SMA = sum(close, period) / period
  */
@@ -58,7 +58,7 @@ public:
     }
     
     /**
-     * @brief 向量化计算（SIMD 优化版本）
+     * @brief 向量化计算（SIMD 优化版本�?
      */
     void once(Size start, Size end) override {
         int period = p().get<int>("period");
@@ -72,7 +72,7 @@ public:
         }
         
         if (!rawInput || rawInput->empty()) {
-            // 回退到逐 bar 计算
+            // 回退到�?bar 计算
             Indicator::once(start, end);
             return;
         }
@@ -82,19 +82,19 @@ public:
             return;
         }
         
-        // 准备临时缓冲区
+        // 准备临时缓冲�?
         std::vector<Value> tempOutput(len);
         
-        // 使用 SIMD 优化的滑动窗口计算
+        // 使用 SIMD 优化的滑动窗口计�?
         simd::slidingMean(rawInput->data(), tempOutput.data(), len, static_cast<Size>(period));
         
-        // 只推入有效值（跳过前面的 NaN）
+        // 只推入有效值（跳过前面�?NaN�?
         for (Size i = static_cast<Size>(period) - 1; i < len; ++i) {
             lines0().push(tempOutput[i]);
         }
     }
     
-    // 快捷方法获取当前值
+    // 快捷方法获取当前�?
     Value value(Index idx = 0) const { return lines0()[idx]; }
 };
 

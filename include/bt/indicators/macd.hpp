@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "bt/indicator.hpp"
+#include "bt/indicators/indicator.hpp"
 #include "bt/indicators/ema.hpp"
-#include "bt/simd.hpp"
+#include "bt/core/simd.hpp"
 
 namespace bt {
 namespace indicators {
@@ -17,14 +17,14 @@ namespace indicators {
 /**
  * @brief MACD 指标
  * 
- * 输出线:
+ * 输出�?
  * - macd: 快线 EMA - 慢线 EMA
- * - signal: MACD 的 EMA
+ * - signal: MACD �?EMA
  * - histogram: MACD - Signal
  */
 class MACD : public Indicator {
 public:
-    // 线索引
+    // 线索�?
     static constexpr Size LINE_MACD = 0;
     static constexpr Size LINE_SIGNAL = 1;
     static constexpr Size LINE_HISTOGRAM = 2;
@@ -69,7 +69,7 @@ public:
         emaFast_->init();
         emaSlow_->init();
         
-        // Signal 的 EMA 需要 MACD 线数据
+        // Signal �?EMA 需�?MACD 线数�?
         signalAlpha_ = 2.0 / (signalPeriod + 1);
         signalInitialized_ = false;
     }
@@ -81,7 +81,7 @@ public:
         Value macdValue = emaFast_->value(0) - emaSlow_->value(0);
         line(LINE_MACD).push(macdValue);
         
-        // 计算 Signal 线
+        // 计算 Signal �?
         if (!signalInitialized_) {
             prevSignal_ = macdValue;
             signalInitialized_ = true;
@@ -90,11 +90,11 @@ public:
         }
         line(LINE_SIGNAL).push(prevSignal_);
         
-        // 计算柱状图
+        // 计算柱状�?
         line(LINE_HISTOGRAM).push(macdValue - prevSignal_);
     }
     
-    // 便捷访问器
+    // 便捷访问�?
     LineBuffer& macd() { return line(LINE_MACD); }
     LineBuffer& signal() { return line(LINE_SIGNAL); }
     LineBuffer& histogram() { return line(LINE_HISTOGRAM); }
@@ -104,7 +104,7 @@ public:
     const LineBuffer& histogram() const { return line(LINE_HISTOGRAM); }
     
     /**
-     * @brief 向量化计算（SIMD 优化版本）
+     * @brief 向量化计算（SIMD 优化版本�?
      */
     void once(Size start, Size end) override {
         int fast = p().get<int>("fast");
@@ -123,7 +123,7 @@ public:
             return;
         }
         
-        // 使用 SIMD 优化的 MACD 计算
+        // 使用 SIMD 优化�?MACD 计算
         Size len = rawInput->size();
         
         std::vector<Value> macdLine(len);

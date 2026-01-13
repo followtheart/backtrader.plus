@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "bt/linebuffer.hpp"
+#include "bt/core/linebuffer.hpp"
 
 using namespace bt;
 
@@ -38,8 +38,8 @@ TEST_F(LineBufferTest, PushAndAccess) {
     EXPECT_EQ(buf.size(), testData.size());
     
     // 移动到最后一个位置后，[0] 是当前值（最后一个）
-    // 不调用 advance/home 时，pos_=0，所以 [0] 是第一个值
-    // 需要先定位到数据末尾
+    // 不调�?advance/home 时，pos_=0，所�?[0] 是第一个�?
+    // 需要先定位到数据末�?
     for (Size i = 0; i < testData.size() - 1; ++i) {
         buf.advance();
     }
@@ -56,7 +56,7 @@ TEST_F(LineBufferTest, IndexingAfterAdvance) {
     
     buf.advance();
     EXPECT_DOUBLE_EQ(buf[0], 2.0);
-    EXPECT_DOUBLE_EQ(buf[1], 1.0);  // 过去的值
+    EXPECT_DOUBLE_EQ(buf[1], 1.0);  // 过去的�?
 }
 
 TEST_F(LineBufferTest, NegativeIndexing) {
@@ -64,9 +64,9 @@ TEST_F(LineBufferTest, NegativeIndexing) {
     buf.extend(testData);
     
     buf.home();
-    buf.advance();  // 现在在位置 1
+    buf.advance();  // 现在在位�?1
     
-    // [-1] 是未来的值
+    // [-1] 是未来的�?
     EXPECT_DOUBLE_EQ(buf[-1], 3.0);
 }
 
@@ -74,9 +74,9 @@ TEST_F(LineBufferTest, QBufferLimitsSize) {
     LineBuffer buf(5);
     buf.extend(testData);
     
-    // QBuffer 只保留最后 5 个值
+    // QBuffer 只保留最�?5 个�?
     EXPECT_EQ(buf.size(), 5);
-    EXPECT_DOUBLE_EQ(buf[0], 10.0);  // 最新
+    EXPECT_DOUBLE_EQ(buf[0], 10.0);  // 最�?
     EXPECT_DOUBLE_EQ(buf[4], 6.0);   // 最旧（5个值中的第一个）
 }
 
@@ -88,7 +88,7 @@ TEST_F(LineBufferTest, MinPeriod) {
     buf.push(1.0);
     buf.push(2.0);
     buf.push(3.0);
-    EXPECT_FALSE(buf.ready());  // 不够 5 个
+    EXPECT_FALSE(buf.ready());  // 不够 5 �?
     
     buf.push(4.0);
     buf.push(5.0);
@@ -99,10 +99,10 @@ TEST_F(LineBufferTest, UpdateMinPeriod) {
     LineBuffer buf;
     buf.setMinperiod(3);
     buf.updateMinperiod(5);
-    EXPECT_EQ(buf.minperiod(), 5);  // 取最大
+    EXPECT_EQ(buf.minperiod(), 5);  // 取最�?
     
     buf.updateMinperiod(2);
-    EXPECT_EQ(buf.minperiod(), 5);  // 不变，因为 2 < 5
+    EXPECT_EQ(buf.minperiod(), 5);  // 不变，因�?2 < 5
 }
 
 TEST_F(LineBufferTest, Reset) {
@@ -125,7 +125,7 @@ TEST_F(LineBufferTest, OutOfRangeAccess) {
     LineBuffer buf;
     buf.push(1.0);
     
-    // 非 const 版本会抛出异常
+    // �?const 版本会抛出异�?
     EXPECT_THROW(buf[100], std::out_of_range);
 }
 

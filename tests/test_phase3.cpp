@@ -4,11 +4,11 @@
  */
 
 #include <gtest/gtest.h>
-#include "bt/timeframe.hpp"
-#include "bt/signal.hpp"
-#include "bt/signalstrategy.hpp"
-#include "bt/resampler.hpp"
-#include "bt/linebuffer.hpp"
+#include "bt/core/timeframe.hpp"
+#include "bt/strategy/signal.hpp"
+#include "bt/strategy/signalstrategy.hpp"
+#include "bt/feed/resampler.hpp"
+#include "bt/core/linebuffer.hpp"
 
 using namespace bt;
 

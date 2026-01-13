@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "bt/indicator.hpp"
-#include "bt/simd.hpp"
+#include "bt/indicators/indicator.hpp"
+#include "bt/core/simd.hpp"
 
 namespace bt {
 namespace indicators {
@@ -19,7 +19,7 @@ namespace indicators {
  * 计算公式:
  * - 平滑因子: alpha = 2 / (period + 1)
  * - EMA[0] = alpha * data[0] + (1 - alpha) * EMA[1]
- * - 第一个值用 SMA 初始化
+ * - 第一个值用 SMA 初始�?
  */
 class EMA : public Indicator {
 public:
@@ -58,7 +58,7 @@ public:
         Value current = dataValue(0);
         
         if (!initialized_) {
-            // 第一个值用 SMA 初始化
+            // 第一个值用 SMA 初始�?
             Value sum = 0.0;
             for (int i = 0; i < period; ++i) {
                 sum += dataValue(i);
@@ -89,13 +89,13 @@ public:
             return;
         }
         
-        // 使用 SIMD 优化的 EMA 计算
+        // 使用 SIMD 优化�?EMA 计算
         Size len = rawInput->size();
         rawOutput->resize(len);
         
         simd::ema(rawInput->data(), rawOutput->data(), len, static_cast<Size>(period));
         
-        // 移除前面的 NaN 值
+        // 移除前面�?NaN �?
         Size validStart = period - 1;
         if (validStart > 0 && rawOutput->size() > len - validStart) {
             rawOutput->erase(rawOutput->begin(), rawOutput->begin() + validStart);
@@ -111,7 +111,7 @@ private:
 };
 
 /**
- * @brief 双指数移动平均 (DEMA)
+ * @brief 双指数移动平�?(DEMA)
  * DEMA = 2 * EMA - EMA(EMA)
  */
 class DEMA : public Indicator {
@@ -124,7 +124,7 @@ public:
         params_.override(params);
         addLine("dema");
         int period = p().get<int>("period");
-        // DEMA 需要 2 * period - 1 的预热期
+        // DEMA 需�?2 * period - 1 的预热期
         setMinperiod(2 * period - 1);
     }
     
@@ -142,7 +142,7 @@ public:
     }
     
     void next() override {
-        // 需要两阶 EMA，先计算 EMA1
+        // 需要两�?EMA，先计算 EMA1
         ema1_->next();
         Value ema1Val = ema1_->value(0);
         
@@ -151,7 +151,7 @@ public:
         Value alpha = 2.0 / (period + 1);
         
         if (!ema2Initialized_) {
-            // 初始化 EMA2
+            // 初始�?EMA2
             ema2_ = ema1Val;
             ema2Initialized_ = true;
         } else {
@@ -170,7 +170,7 @@ private:
 };
 
 /**
- * @brief 三指数移动平均 (TEMA)
+ * @brief 三指数移动平�?(TEMA)
  * TEMA = 3 * EMA - 3 * EMA(EMA) + EMA(EMA(EMA))
  * 
  * TEMA 通过组合三阶 EMA 来减少滞后性，同时保持平滑效果
@@ -185,7 +185,7 @@ public:
         params_.override(params);
         addLine("tema");
         int period = p().get<int>("period");
-        // TEMA 需要 3 * period - 2 的预热期
+        // TEMA 需�?3 * period - 2 的预热期
         setMinperiod(3 * period - 2);
     }
     
@@ -215,9 +215,9 @@ public:
         int period = p().get<int>("period");
         Value current = dataValue(0);
         
-        // 计算 EMA1 (原始数据的 EMA)
+        // 计算 EMA1 (原始数据�?EMA)
         if (!ema1Initialized_) {
-            // 第一个值用 SMA 初始化
+            // 第一个值用 SMA 初始�?
             Value sum = 0.0;
             for (int i = 0; i < period; ++i) {
                 sum += dataValue(i);
@@ -228,7 +228,7 @@ public:
             ema1_ = alpha_ * current + (1.0 - alpha_) * ema1_;
         }
         
-        // 计算 EMA2 (EMA1 的 EMA)
+        // 计算 EMA2 (EMA1 �?EMA)
         if (!ema2Initialized_) {
             ema2_ = ema1_;
             ema2Initialized_ = true;
@@ -236,7 +236,7 @@ public:
             ema2_ = alpha_ * ema1_ + (1.0 - alpha_) * ema2_;
         }
         
-        // 计算 EMA3 (EMA2 的 EMA)
+        // 计算 EMA3 (EMA2 �?EMA)
         if (!ema3Initialized_) {
             ema3_ = ema2_;
             ema3Initialized_ = true;

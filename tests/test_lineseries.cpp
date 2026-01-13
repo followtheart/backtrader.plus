@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "bt/lineseries.hpp"
+#include "bt/core/lineseries.hpp"
 
 using namespace bt;
 
@@ -90,11 +90,11 @@ TEST_F(LineSeriesTest, AddBar) {
     }
     
     EXPECT_EQ(data.open().size(), 5);
-    // 需要先定位到数据末尾
+    // 需要先定位到数据末�?
     for (Size i = 0; i < ohlcvData.size() - 1; ++i) {
         data.advance();
     }
-    EXPECT_DOUBLE_EQ(data.open()[0], 110.0);    // 最后一个 bar
+    EXPECT_DOUBLE_EQ(data.open()[0], 110.0);    // 最后一�?bar
     EXPECT_DOUBLE_EQ(data.high()[0], 115.0);
     EXPECT_DOUBLE_EQ(data.close()[0], 114.0);
 }
@@ -106,10 +106,10 @@ TEST_F(LineSeriesTest, Advance) {
     }
     
     data.home();
-    EXPECT_DOUBLE_EQ(data.close()[0], 102.0);  // 第一个 bar
+    EXPECT_DOUBLE_EQ(data.close()[0], 102.0);  // 第一�?bar
     
     data.advance();
-    EXPECT_DOUBLE_EQ(data.close()[0], 107.0);  // 第二个 bar
+    EXPECT_DOUBLE_EQ(data.close()[0], 107.0);  // 第二�?bar
 }
 
 TEST_F(LineSeriesTest, MinPeriod) {
@@ -120,7 +120,7 @@ TEST_F(LineSeriesTest, MinPeriod) {
     series.line(0).setMinperiod(5);
     series.line(1).setMinperiod(10);
     
-    // 整个 series 的 minperiod 是所有线的最大值
+    // 整个 series �?minperiod 是所有线的最大�?
     EXPECT_EQ(series.minperiod(), 10);
 }
 

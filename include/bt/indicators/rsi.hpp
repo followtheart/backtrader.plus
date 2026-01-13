@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "bt/indicator.hpp"
-#include "bt/simd.hpp"
+#include "bt/indicators/indicator.hpp"
+#include "bt/core/simd.hpp"
 
 namespace bt {
 namespace indicators {
@@ -20,7 +20,7 @@ namespace indicators {
  * - RS = 平均涨幅 / 平均跌幅
  * - RSI = 100 - 100 / (1 + RS)
  * 
- * 使用 Wilder 平滑方法（等效于 alpha = 1/period 的 EMA）
+ * 使用 Wilder 平滑方法（等效于 alpha = 1/period �?EMA�?
  */
 class RSI : public Indicator {
 public:
@@ -68,7 +68,7 @@ public:
         ++barCount_;
         
         if (!initialized_) {
-            // 累加前 period 个值
+            // 累加�?period 个�?
             sumGain_ += gain;
             sumLoss_ += loss;
             
@@ -109,7 +109,7 @@ public:
     }
     
     /**
-     * @brief 向量化计算（SIMD 优化版本）
+     * @brief 向量化计算（SIMD 优化版本�?
      */
     void once(Size start, Size end) override {
         int period = p().get<int>("period");
@@ -128,13 +128,13 @@ public:
             return;
         }
         
-        // 使用 SIMD 优化的 RSI 计算
+        // 使用 SIMD 优化�?RSI 计算
         Size len = rawInput->size();
         rawOutput->resize(len);
         
         simd::rsi(rawInput->data(), rawOutput->data(), len, static_cast<Size>(period));
         
-        // 移除前面的 NaN 值
+        // 移除前面�?NaN �?
         Size validStart = period;
         if (validStart > 0 && rawOutput->size() > len - validStart) {
             rawOutput->erase(rawOutput->begin(), rawOutput->begin() + validStart);
@@ -144,7 +144,7 @@ public:
 private:
     void setupLines() {
         addLine("rsi");
-        setMinperiod(p().get<int>("period") + 1);  // 需要前一个值计算变化
+        setMinperiod(p().get<int>("period") + 1);  // 需要前一个值计算变�?
     }
     
     Value alpha_ = 0.0;
@@ -185,7 +185,7 @@ public:
         int period = p().get<int>("period");
         rsi_->next();
         
-        // 找最近 period 个 RSI 的最高和最低
+        // 找最�?period �?RSI 的最高和最�?
         Value rsiVal = rsi_->value(0);
         Value highest = rsiVal;
         Value lowest = rsiVal;

@@ -2,45 +2,45 @@
  * @file backtrader.hpp
  * @brief Backtrader C++ 主头文件
  * 
- * 包含所有核心功能的单一入口点
+ * 包含所有核心功能的单一入口�?
  */
 
 #pragma once
 
 // 核心组件
-#include "bt/common.hpp"
-#include "bt/linebuffer.hpp"
-#include "bt/lineseries.hpp"
-#include "bt/params.hpp"
-#include "bt/indicator.hpp"
+#include "bt/core/common.hpp"
+#include "bt/core/linebuffer.hpp"
+#include "bt/core/lineseries.hpp"
+#include "bt/core/params.hpp"
+#include "bt/indicators/indicator.hpp"
 
 // 引擎组件 (Phase 2)
-#include "bt/order.hpp"
-#include "bt/datafeed.hpp"
-#include "bt/broker.hpp"
-#include "bt/strategy.hpp"
-#include "bt/cerebro.hpp"
-#include "bt/analyzer.hpp"
-#include "bt/observer.hpp"
+#include "bt/broker/order.hpp"
+#include "bt/feed/datafeed.hpp"
+#include "bt/broker/broker.hpp"
+#include "bt/strategy/strategy.hpp"
+#include "bt/engine/cerebro.hpp"
+#include "bt/analysis/analyzer.hpp"
+#include "bt/analysis/observer.hpp"
 
-// 高级特性 (Phase 3)
-#include "bt/timeframe.hpp"
-#include "bt/signal.hpp"
-#include "bt/signalstrategy.hpp"
-#include "bt/resampler.hpp"
+// 高级特�?(Phase 3)
+#include "bt/core/timeframe.hpp"
+#include "bt/strategy/signal.hpp"
+#include "bt/strategy/signalstrategy.hpp"
+#include "bt/feed/resampler.hpp"
 
 // 性能优化 (Phase 4)
-#include "bt/vectorized.hpp"
-#include "bt/simd.hpp"
-#include "bt/threadpool.hpp"
-#include "bt/optimizer.hpp"
+#include "bt/core/vectorized.hpp"
+#include "bt/core/simd.hpp"
+#include "bt/core/threadpool.hpp"
+#include "bt/engine/optimizer.hpp"
 
 // 新增组件 (Phase 5 - Python 功能对齐)
-#include "bt/sizer.hpp"
-#include "bt/comminfo.hpp"
-#include "bt/filter.hpp"
-#include "bt/timer.hpp"
-#include "bt/writer.hpp"
+#include "bt/broker/sizer.hpp"
+#include "bt/broker/comminfo.hpp"
+#include "bt/feed/filter.hpp"
+#include "bt/core/timer.hpp"
+#include "bt/analysis/writer.hpp"
 
 // 指标
 #include "bt/indicators/sma.hpp"
@@ -52,7 +52,7 @@
 namespace bt {
 
 /**
- * @brief 版本字符串
+ * @brief 版本字符�?
  */
 inline const char* version() {
     return "0.4.0";  // Phase 4
@@ -69,7 +69,7 @@ inline const char* simdInfo() {
  * @brief 打印版本信息
  */
 inline void printVersion() {
-    // 静默实现，避免 iostream 依赖
+    // 静默实现，避�?iostream 依赖
 }
 
 } // namespace bt

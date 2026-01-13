@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "bt/params.hpp"
+#include "bt/core/params.hpp"
 
 using namespace bt;
 
@@ -43,7 +43,7 @@ TEST(ParamsTest, HasParameter) {
 TEST(ParamsTest, GetWithDefault) {
     Params p;
     
-    // 参数不存在时返回默认值
+    // 参数不存在时返回默认�?
     EXPECT_EQ(p.get<int>("missing", 42), 42);
     EXPECT_DOUBLE_EQ(p.get<double>("missing", 3.14), 3.14);
 }
@@ -65,7 +65,7 @@ TEST(ParamsTest, Merge) {
     base.merge(other);
     
     EXPECT_EQ(base.get<int>("a"), 1);   // 保持
-    EXPECT_EQ(base.get<int>("b"), 2);   // merge 不覆盖已存在的
+    EXPECT_EQ(base.get<int>("b"), 2);   // merge 不覆盖已存在�?
     EXPECT_EQ(base.get<int>("c"), 30);  // 新增
 }
 
@@ -130,5 +130,5 @@ TEST(ParamsTest, OverrideDefaultParams) {
     TestClass obj(custom);
     
     EXPECT_EQ(obj.p().get<int>("period"), 50);
-    EXPECT_DOUBLE_EQ(obj.p().get<double>("factor"), 2.5);  // 默认值保持
+    EXPECT_DOUBLE_EQ(obj.p().get<double>("factor"), 2.5);  // 默认值保�?
 }

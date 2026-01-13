@@ -9,12 +9,12 @@ set(BACKTRADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/indicators/ema.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/indicators/operations.cpp
     # Engine (Phase 2)
-    ${CMAKE_CURRENT_SOURCE_DIR}/datafeed.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/broker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/strategy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cerebro.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/analyzer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/observer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/feed/datafeed.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/broker/broker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/strategy/strategy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/cerebro.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/analysis/analyzer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/analysis/observer.cpp
 )
 
 # 核心库

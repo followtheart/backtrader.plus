@@ -1,11 +1,11 @@
 /**
  * @file indicators/bollinger.hpp
- * @brief 布林带指标 (Bollinger Bands)
+ * @brief 布林带指�?(Bollinger Bands)
  */
 
 #pragma once
 
-#include "bt/indicator.hpp"
+#include "bt/indicators/indicator.hpp"
 #include "bt/indicators/sma.hpp"
 #include <cmath>
 
@@ -13,7 +13,7 @@ namespace bt {
 namespace indicators {
 
 /**
- * @brief 标准差计算
+ * @brief 标准差计�?
  */
 class StdDev : public Indicator {
 public:
@@ -37,7 +37,7 @@ public:
     void next() override {
         int period = p().get<int>("period");
         
-        // 计算均值
+        // 计算均�?
         Value sum = 0.0;
         for (int i = 0; i < period; ++i) {
             sum += dataValue(i);
@@ -59,9 +59,9 @@ public:
 };
 
 /**
- * @brief 布林带 (Bollinger Bands)
+ * @brief 布林�?(Bollinger Bands)
  * 
- * 输出线:
+ * 输出�?
  * - mid: 中轨 (SMA)
  * - top: 上轨 (mid + devfactor * stddev)
  * - bot: 下轨 (mid - devfactor * stddev)
@@ -118,7 +118,7 @@ public:
         line(LINE_BOT).push(mid - devfactor * dev);
     }
     
-    // 便捷访问器
+    // 便捷访问�?
     LineBuffer& mid() { return line(LINE_MID); }
     LineBuffer& top() { return line(LINE_TOP); }
     LineBuffer& bot() { return line(LINE_BOT); }
