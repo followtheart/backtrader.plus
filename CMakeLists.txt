@@ -39,6 +39,39 @@ find_package(Threads REQUIRED)
 # 头文件目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# 依赖库: SQLite3 (用于元数据存储)
+include(FetchContent)
+
+FetchContent_Declare(
+    sqlite3
+    GIT_REPOSITORY https://github.com/azadkuh/sqlite-amalgamation
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(sqlite3)
+
+# 依赖库: nlohmann_json (用于 JSON 解析)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(json)
+
+# 依赖库: CPR (用于 HTTP 请求)
+# 注意: 在 Windows 上编译 cpr (及其依赖 curl/openssl) 可能需要较长时间和环境配置
+# 如果遇到问题，建议预先安装 OpenSSL
+option(BT_ENABLE_NETWORKING "Enable networking features (cpr)" ON)
+
+if(BT_ENABLE_NETWORKING)
+    FetchContent_Declare(
+        cpr
+        GIT_REPOSITORY https://github.com/libcpr/cpr.git
+        GIT_TAG 1.10.4
+    )
+    FetchContent_MakeAvailable(cpr)
+    add_compile_definitions(BT_ENABLE_NETWORKING)
+endif()
+
 # 核心库
 add_subdirectory(src)
 

@@ -15,6 +15,12 @@ set(BACKTRADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/engine/cerebro.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/analysis/analyzer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/analysis/observer.cpp
+    # Data Storage & Fetching
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/flat_file_store.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/sqlite_store.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/data_ingestor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/okx_fetcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/storage_feed.cpp
 )
 
 # 核心库
@@ -22,10 +28,17 @@ add_library(backtrader_core STATIC ${BACKTRADER_SOURCES})
 
 target_include_directories(backtrader_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
+    ${sqlite3_SOURCE_DIR}
+    ${sqlite3_BINARY_DIR}
 )
 
-# 链接线程库
-target_link_libraries(backtrader_core PUBLIC Threads::Threads)
+# 链接
+set(BT_LIBS Threads::Threads SQLite3)
+if(BT_ENABLE_NETWORKING)
+    list(APPEND BT_LIBS nlohmann_json::nlohmann_json cpr::cpr)
+endif()
+
+target_link_libraries(backtrader_core PUBLIC ${BT_LIBS})
 
 # SIMD 支持
 if(BT_ENABLE_SIMD)

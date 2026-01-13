@@ -9,3 +9,7 @@ target_link_libraries(benchmark_indicators PRIVATE backtrader_core)
 # SMA Crossover Strategy 完整回测示例
 add_executable(sma_crossover_strategy sma_crossover_strategy.cpp)
 target_link_libraries(sma_crossover_strategy PRIVATE backtrader_core)
+
+# 行情抓取与存储示例 (需要 Networking)
+add_executable(fetch_and_store fetch_and_store.cpp)
+target_link_libraries(fetch_and_store PRIVATE backtrader_core)
