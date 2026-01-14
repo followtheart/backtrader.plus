@@ -159,6 +159,14 @@ public:
     // ==================== Broker Access ====================
     
     /**
+     * @brief Set a custom broker
+     * @param broker Unique pointer to the broker
+     */
+    void setBroker(std::unique_ptr<Broker> broker) {
+        broker_ = std::move(broker);
+    }
+
+    /**
      * @brief Get reference to the broker
      */
     Broker& broker() { return *broker_; }

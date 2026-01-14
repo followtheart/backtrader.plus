@@ -137,6 +137,8 @@ public:
         filler_ = std::make_unique<DefaultFiller>();
     }
     
+    virtual ~Broker() = default;
+
     // Parameters
     Params& params() { return params_; }
     const Params& params() const { return params_; }
@@ -216,31 +218,31 @@ public:
     
     void setCash(Value c) { cash_ = c; startCash_ = c; }
     void addCash(Value c) { cash_ += c; }
-    Value getCash() const { return cash_; }
+    virtual Value getCash() const { return cash_; }
     Value getStartCash() const { return startCash_; }
-    Value getValue() const;
+    virtual Value getValue() const;
     
     // ==================== Position ====================
     
-    Value getPosition(const std::string& data) const {
+    virtual Value getPosition(const std::string& data) const {
         auto it = positions_.find(data);
         return it != positions_.end() ? it->second.size : 0;
     }
     
-    Value getPositionPrice(const std::string& data) const {
+    virtual Value getPositionPrice(const std::string& data) const {
         auto it = positions_.find(data);
         return it != positions_.end() ? it->second.price : 0;
     }
     
-    Value getPositionValue(const std::string& data) const;
+    virtual Value getPositionValue(const std::string& data) const;
     
     // ==================== Orders ====================
     
-    Order* buy(const std::string& data, Size size, Value price = 0,
+    virtual Order* buy(const std::string& data, Size size, Value price = 0,
                OrderType type = OrderType::Market);
-    Order* sell(const std::string& data, Size size, Value price = 0,
+    virtual Order* sell(const std::string& data, Size size, Value price = 0,
                 OrderType type = OrderType::Market);
-    void cancel(Size orderId);
+    virtual void cancel(Size orderId);
     
     // ==================== Data ====================
     
@@ -275,21 +277,21 @@ public:
     /**
      * @brief Process bar (normal mode)
      */
-    void next();
+    virtual void next();
     
     /**
      * @brief Process bar in cheat-on-open mode
      */
-    void nextOpen();
+    virtual void nextOpen();
     
     /**
      * @brief Process bar in cheat-on-close mode
      */
-    void nextClose();
+    virtual void nextClose();
     
     // ==================== Reset ====================
     
-    void reset() {
+    virtual void reset() {
         cash_ = startCash_;
         positions_.clear();
         orders_.clear();
@@ -302,7 +304,7 @@ public:
     const std::vector<Trade>& getTrades() const { return trades_; }
     const std::vector<std::unique_ptr<Order>>& getOrders() const { return orders_; }
 
-private:
+protected:
     struct PositionInfo {
         Value size = 0;
         Value price = 0;
@@ -328,13 +330,13 @@ private:
     OrderCallback orderCb_;
     TradeCallback tradeCb_;
     
-    bool tryExecute(Order& order, bool atOpen = false, bool atClose = false);
-    void executeOrder(Order& order, Value price, Size fillSize);
+    virtual bool tryExecute(Order& order, bool atOpen = false, bool atClose = false);
+    virtual void executeOrder(Order& order, Value price, Size fillSize);
     
     /**
      * @brief Apply slippage to price
      */
-    Value applySlippage(Value price, bool isBuy, const SlippageConfig& slip) {
+    virtual Value applySlippage(Value price, bool isBuy, const SlippageConfig& slip) {
         Value slipAmount = 0;
         
         if (slip.perc > 0) {
