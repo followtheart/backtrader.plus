@@ -170,11 +170,33 @@ void Broker::executeOrder(Order& order, Value price, Size fillSize) {
     }
     
     trades_.push_back(trade);
-    
+
     order.status_ = OrderStatus::Completed;
     order.execInfo_.price = price;
     order.execInfo_.size = size;
     order.execInfo_.commission = comm;
+}
+
+void Broker::nextOpen() {
+    // Default implementation: do nothing or process COO orders
+    // For now, leave empty or same as next() if consistent
+}
+
+void Broker::nextClose() {
+    // Default implementation
+}
+
+Value Broker::getPositionValue(const std::string& data) const {
+    auto it = positions_.find(data);
+    if (it == positions_.end() || it->second.size == 0) return 0.0;
+    
+    // Mark to market if possible
+    if (dataFeeds_.count(data)) {
+        return it->second.size * dataFeeds_.at(data)->close()[0];
+    }
+    
+    // Fallback to open cost
+    return it->second.size * it->second.price;
 }
 
 } // namespace bt

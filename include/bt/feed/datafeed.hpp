@@ -70,6 +70,31 @@ struct DateTime {
         return dt;
     }
     
+    // Add days to DateTime
+    DateTime operator+(int days) const {
+        std::tm tm = {};
+        tm.tm_year = year - 1900;
+        tm.tm_mon = month - 1;
+        tm.tm_mday = day;
+        tm.tm_hour = hour;
+        tm.tm_min = minute;
+        tm.tm_sec = second;
+        
+        // Add days (in seconds)
+        auto time = std::mktime(&tm);
+        time += days * 86400; // 24 * 60 * 60
+        
+        std::tm* newTm = std::localtime(&time);
+        return DateTime(
+            newTm->tm_year + 1900,
+            newTm->tm_mon + 1,
+            newTm->tm_mday,
+            newTm->tm_hour,
+            newTm->tm_min,
+            newTm->tm_sec
+        );
+    }
+    
     std::string toString() const {
         std::ostringstream oss;
         oss << std::setfill('0')
