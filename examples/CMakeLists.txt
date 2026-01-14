@@ -13,3 +13,7 @@ target_link_libraries(sma_crossover_strategy PRIVATE backtrader_core)
 # 行情抓取与存储示例 (需要 Networking)
 add_executable(fetch_and_store fetch_and_store.cpp)
 target_link_libraries(fetch_and_store PRIVATE backtrader_core)
+
+# OKX Broker 实盘/模拟盘 示例
+add_executable(okx_broker_example okx_broker_example.cpp)
+target_link_libraries(okx_broker_example PRIVATE backtrader_core)
