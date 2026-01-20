@@ -17,3 +17,7 @@ target_link_libraries(fetch_and_store PRIVATE backtrader_core)
 # OKX Broker 实盘/模拟盘 示例
 add_executable(okx_broker_example okx_broker_example.cpp)
 target_link_libraries(okx_broker_example PRIVATE backtrader_core)
+
+# 使用存储数据进行回测示例
+add_executable(backtest_with_stored_data backtest_with_stored_data.cpp)
+target_link_libraries(backtest_with_stored_data PRIVATE backtrader_core)

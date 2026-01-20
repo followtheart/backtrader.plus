@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         // 取当前时间
         auto now = std::chrono::system_clock::now();
         auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        int64_t twelve_hours_ms = 12 * 60 * 60 * 1000;
+        int64_t twelve_hours_ms = 12*24 * 60 * 60 * 1000;
         int64_t start_ms = now_ms - twelve_hours_ms;
 
         std::cout << "Downloading range: " << start_ms << " -> " << now_ms << std::endl;
